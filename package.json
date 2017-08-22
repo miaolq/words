@@ -1,6 +1,6 @@
 {
   "name": "translate-wd",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "translate word in command line",
   "main": "index.js",
   "scripts": {},
@@ -16,5 +16,9 @@
   },
   "bin": {
     "wd": "./bin/wd"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:miaolq/words.git"
   }
 }
