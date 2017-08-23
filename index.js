@@ -3,6 +3,7 @@ const http = require('http');
 const chalk = require('chalk');
 const os = require('os');
 const path = require('path');
+const say = require('say');
 const directoryPath = path.resolve(os.homedir(), 'translate-wd');
 let filePath = path.resolve(os.homedir(), 'translate-wd', 'word.json');
 const COUNT = 500; // 超过500个时另起一个文件存储
@@ -83,6 +84,8 @@ module.exports = function main(arr) {
         res.on('data', (chunk) => { rawData += chunk; });
         res.on('end', () => {
             const parsedData = JSON.parse(rawData);
+            const ph_en = parsedData.symbols[0].ph_en;
+            const ph_am = parsedData.symbols[0].ph_am;
             const parts = parsedData.symbols[0].parts;
             // 无结果直接返回
             if (!parts) {
@@ -90,9 +93,13 @@ module.exports = function main(arr) {
                 return;
             }
             // 控制台输出
+            let outPut = `${words}  ${chalk.magenta(`英[ ${ph_en} ] 美[ ${ph_am} ]`)}`;
             for (const item of parts) {
-                console.log(`${chalk.blue(fillBlank(item.part))} ${chalk.yellow(item.means.join(' '))}`)
+                outPut += `${os.EOL}${chalk.green(fillBlank(item.part))} ${chalk.yellow(item.means.join(' '))}`;
             }
+            console.log(outPut);
+            // 发音
+            say.speak(words);
             writeToJson(parts, words);
         });
     }).on('error', (e) => {
