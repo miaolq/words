@@ -6,7 +6,7 @@ const path = require('path');
 const say = require('say');
 const directoryPath = path.resolve(os.homedir(), 'translate-wd');
 let filePath = path.resolve(os.homedir(), 'translate-wd', 'word.json');
-const COUNT = 500; // 超过500个时另起一个文件存储
+const COUNT = 500; // 超过500个时另起一个文件存储.
 
 function fillBlank(str) {
     while (str.length < 6) {
