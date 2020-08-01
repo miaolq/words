@@ -4,76 +4,69 @@ const chalk = require('chalk');
 const os = require('os');
 const path = require('path');
 const say = require('say');
-const directoryPath = path.resolve(os.homedir(), 'translate-wd');
-let filePath = path.resolve(os.homedir(), 'translate-wd', 'word.json');
-let sentencePath = path.resolve(os.homedir(), 'translate-wd', 'sentence.json');
-const COUNT = 100; // 超过500个时另起一个文件存储.
+const dirPath = path.resolve(os.homedir(), 'translate-wd');
+let wordFile = path.resolve(dirPath, 'word.json');
+let sentenceFile = path.resolve(dirPath, 'sentence.json');
+const COUNT = 100; // 超过100个时另起一个文件存储.
 const SentenceNum = 100;
 
-function fillBlank(str) {
-  while (str.length < 6) {
+function fmt(str) {
+  while (str.length < 8) {
     str += ' ';
   }
   return str;
 }
 
-function fillZero(num) {
-  if (num < 10) {
-    return '0' + num;
-  }
-  return num;
-}
-
-function getDateStr() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = fillZero(now.getMonth() + 1);
-  const date = fillZero(now.getDate());
-  const hour = fillZero(now.getHours());
-  const minute = fillZero(now.getMinutes());
-  return `${year}-${month}-${date}-${hour}-${minute}`;
+function newFileName(key) {
+  return path.resolve(dirPath, `key${Date.now()}.json`);
 }
 
 // 写入JSON
-function writeToJson(parts, words) {
+function saveWord(word, phonetic, parts) {
   let wordsJson;
   try {
-    wordsJson = require(filePath);
-  } catch (error) {
-    wordsJson = {};
-  }
-  if (!wordsJson[words]) {
-    wordsJson[words] = parts.map((item) => {
-      const obj = {};
-      obj[item.part] = item.means.join(' ');
-      return obj;
-    });
-    if (Object.keys(wordsJson).length >= COUNT) {
-      const newFilePath = path.resolve(
-        os.homedir(),
-        'translate-wd',
-        `word${getDateStr()}.json`
-      );
-      fs.renameSync(filePath, newFilePath);
-      filePath = newFilePath;
+    wordsJson = require(wordFile);
+    // 兼容老版本
+    if (typeof wordsJson === 'object') {
+      wordsJson = Object.entries(wordsJson).map(([key, value]) => ({
+        word: key,
+        phonetic: '-',
+        parts: value,
+      }));
     }
-    fs.writeFile(filePath, JSON.stringify(wordsJson), (err) => {
-      if (err) {
-        if (err.code === 'ENOENT') {
-          fs.mkdirSync(directoryPath);
-          fs.writeFileSync(filePath, JSON.stringify(wordsJson));
-        } else {
-          console.error(err);
-        }
-      }
-    });
+  } catch (error) {
+    wordsJson = [];
   }
+  if (wordsJson.some((item) => item.word === word)) return;
+
+  wordsJson.push({
+    word,
+    phonetic,
+    means: parts.map((item) => ({
+      [item.part]: item.means.join(' '),
+    })),
+  });
+  if (wordsJson.length >= COUNT) {
+    const newFilePath = newFileName('word');
+    fs.renameSync(wordFile, newFilePath);
+    wordFile = newFilePath;
+  }
+  fs.writeFile(wordFile, JSON.stringify(wordsJson), (err) => {
+    if (err) {
+      if (err.code === 'ENOENT') {
+        fs.mkdirSync(dirPath);
+        fs.writeFileSync(wordFile, JSON.stringify(wordsJson));
+      } else {
+        console.error(err);
+      }
+    }
+  });
 }
 
-function wirteSentence(sentence) {
+function saveSentence(sentence) {
   let json;
   try {
-    json = require(sentencePath);
+    json = require(sentenceFile);
   } catch (err) {
     json = [];
   }
@@ -82,19 +75,15 @@ function wirteSentence(sentence) {
   }
   json.push(sentence);
   if (json.length > SentenceNum) {
-    const newFilePath = path.resolve(
-      os.homedir(),
-      'translate-wd',
-      `sentence${getDateStr()}.json`
-    );
-    fs.renameSync(sentencePath, newFilePath);
-    sentencePath = newFilePath;
+    const newFilePath = newFileName('sentence');
+    fs.renameSync(sentenceFile, newFilePath);
+    sentenceFile = newFilePath;
   }
-  fs.writeFile(sentencePath, JSON.stringify(json), (err) => {
+  fs.writeFile(sentenceFile, JSON.stringify(json), (err) => {
     if (err) {
       if (err.code === 'ENOENT') {
-        fs.mkdirSync(directoryPath);
-        fs.writeFileSync(sentencePath, JSON.stringify(json));
+        fs.mkdirSync(dirPath);
+        fs.writeFileSync(sentenceFile, JSON.stringify(json));
       } else {
         console.error(err);
       }
@@ -108,7 +97,7 @@ module.exports = function main(arr) {
   }
 
   if (arr.length > 1) {
-    return wirteSentence(arr.join(' '));
+    return saveSentence(arr.join(' '));
   }
 
   const words = arr.join(' ');
@@ -128,27 +117,22 @@ module.exports = function main(arr) {
       });
       res.on('end', () => {
         const parsedData = JSON.parse(rawData);
-        const ph_en = parsedData.symbols[0].ph_en;
-        const ph_am = parsedData.symbols[0].ph_am;
-        const parts = parsedData.symbols[0].parts;
+        const { ph_en, ph_am, parts } = parsedData.symbols[0];
         // 无结果直接返回
         if (!parts) {
           console.log(chalk.red('no results found'));
           return;
         }
         // 控制台输出
-        let outPut = `${words}  ${chalk.magenta(
-          `英[ ${ph_en} ] 美[ ${ph_am} ]`
-        )}`;
+        const phonetic = `英[ ${ph_en} ] 美[ ${ph_am} ]`;
+        let outPut = `${words}  ${chalk.magenta(phonetic)}`;
         for (const item of parts) {
-          outPut += `${os.EOL}${chalk.green(
-            fillBlank(item.part)
-          )} ${chalk.yellow(item.means.join(' '))}`;
+          // prettier-ignore
+          outPut += `${os.EOL}${chalk.green(fmt(item.part))} ${chalk.yellow(item.means.join(' '))}`;
         }
-        console.log(outPut);
         // 发音
         say.speak(words);
-        writeToJson(parts, words);
+        saveWord(words, phonetic, parts);
       });
     })
     .on('error', (e) => {
