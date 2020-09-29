@@ -3,7 +3,9 @@
   "version": "1.1.0",
   "description": "translate word in command line",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "start": "./bin "
+  },
   "keywords": [
     "translate",
     "english",
@@ -13,6 +15,8 @@
   "license": "MIT",
   "dependencies": {
     "chalk": "^2.1.0",
+    "commander": "^6.1.0",
+    "node-fetch": "^2.6.0",
     "say": "^0.11.0"
   },
   "bin": {
