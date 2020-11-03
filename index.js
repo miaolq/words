@@ -7,9 +7,8 @@ const fs = require('fs-extra')
 const pkg = require('./package.json')
 const api = require('./api')
 
-const hostFile = './_local/host'
-const tkFile = './_local/tk'
-// const host = 'http://106.14.121.159/back'
+const hostFile = './_host'
+const tkFile = './_tk'
 
 function fmt(str) {
   while (str.length < 8) {
