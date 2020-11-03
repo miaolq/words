@@ -28,7 +28,8 @@ async function main() {
   prog.parse()
 
   const options = prog.opts()
-  const { words, login, host: hostOption } = options
+  let { words, login, host: hostOption } = options
+  words = words || prog.args
 
   const tk = await fs
     .readFile(tkFile)

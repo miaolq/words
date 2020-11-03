@@ -10,6 +10,8 @@ npm install -g translate-wd
 
 ```
 $ wd --help
+$ wd hello 翻译
+$ wd hello world 不翻译，仅记录
 ```
 
 todo: 提醒
