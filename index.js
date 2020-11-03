@@ -1,4 +1,3 @@
-#! /usr/bin/env node
 const { Command } = require('commander')
 const chalk = require('chalk')
 const nodeFetch = require('node-fetch')
@@ -8,8 +7,8 @@ const fs = require('fs-extra')
 const pkg = require('./package.json')
 const api = require('./api')
 
-const hostFile = './host'
-const tkFile = './tk'
+const hostFile = './_local/host'
+const tkFile = './_local/tk'
 // const host = 'http://106.14.121.159/back'
 
 function fmt(str) {

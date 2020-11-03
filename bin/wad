@@ -1,8 +1,0 @@
-#! /usr/bin/env node
-console.log(111)
-const { Command } = require('commander');
-const prog = new Command();
-
-prog.version('0.0.1');
-prog.option('-w --word', 'word to translate');
-console.log(prog);

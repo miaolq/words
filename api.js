@@ -2,7 +2,7 @@ const nodeFetch = require('node-fetch')
 const fs = require('fs-extra')
 const chalk = require('chalk')
 
-const tkFile = './tk'
+const tkFile = './_local/tk'
 
 function logRes(res, url = '') {
   const { code, message } = res

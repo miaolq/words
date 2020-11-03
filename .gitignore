@@ -1,4 +1,4 @@
 node_modules
-words.json
+_local
 .vscode
 *.log
