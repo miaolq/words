@@ -1,8 +1,7 @@
 const nodeFetch = require('node-fetch')
-const fs = require('fs-extra')
 const chalk = require('chalk')
-
-const tkFile = `${__dirname}/_tk`
+const { config, writeConfig } = require('./config')
+const { tk, host } = config
 
 function logRes(res, url = '') {
   const { code, message } = res
@@ -12,13 +11,18 @@ function logRes(res, url = '') {
 }
 
 const fetch = async (...o) => {
+  if (!host) {
+    return console.log('未写入host')
+  }
+  if (!tk && !o[0].includes('/user/login')) {
+    return console.log('未登录')
+  }
   const res = await nodeFetch(...o).then(res => res.json())
   logRes(res, o[0])
   return res
 }
 
 exports.login = async (account, passwd, expires = 7) => {
-  const { host } = global.words
   return fetch(`${host}/user/login`, {
     method: 'post',
     headers: {
@@ -27,16 +31,13 @@ exports.login = async (account, passwd, expires = 7) => {
     body: JSON.stringify({ account, passwd, expires }),
   }).then(async res => {
     const { code, data } = res
-    console.log(res)
     if (code !== 0) return
-    const fd = await fs.open(tkFile, 'w')
-    await fs.write(fd, data.tk)
-    console.log(chalk.blue('login success'))
+    config.tk = data.tk
+    writeConfig(config)
   })
 }
 
 exports.addS = async s => {
-  const { tk, host } = global.words
   return fetch(`${host}/sentence`, {
     method: 'post',
     headers: {
@@ -48,7 +49,6 @@ exports.addS = async s => {
 }
 
 exports.addW = async w => {
-  const { tk, host } = global.words
   return fetch(`${host}/word`, {
     method: 'post',
     headers: {

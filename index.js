@@ -3,12 +3,9 @@ const chalk = require('chalk')
 const nodeFetch = require('node-fetch')
 const os = require('os')
 const say = require('say')
-const fs = require('fs-extra')
 const pkg = require('./package.json')
 const api = require('./api')
-
-const hostFile = `${__dirname}/_host`
-const tkFile = `${__dirname}/_tk`
+const { writeConfig, config } = require('./config')
 
 function fmt(str) {
   while (str.length < 8) {
@@ -30,20 +27,9 @@ async function main() {
   let { words, login, host: hostOption } = options
   words = words || prog.args
 
-  const tk = await fs
-    .readFile(tkFile)
-    .catch(err => console.log(chalk.red(err.message)))
-  !tk && console.log(chalk.red('未登录'))
-  const host = await fs
-    .readFile(hostFile)
-    .catch(err => console.log(chalk.red(err.message)))
-  !host && console.log(chalk.red('未写入接口地址'))
-  global.words = { tk, host }
-
   if (hostOption) {
-    const fd = await fs.open(hostFile, 'w')
-    await fs.write(fd, hostOption[0])
-    console.log(chalk.blue('写入api成功'))
+    config.host = hostOption[0]
+    writeConfig(config)
     return
   }
 
@@ -82,8 +68,7 @@ async function handleWord(word) {
     { area: 'ph_en', ph: ph_en, mp3: ph_en_mp3 },
     { area: 'ph_am', ph: ph_am, mp3: ph_am_mp3 },
   ]
-  const { tk, host } = global.words
-  tk && host && api.addW({ word, phonetic, exchange, parts })
+  api.addW({ word, phonetic, exchange, parts })
 
   let output = `${word} ${chalk.magenta(`英[ ${ph_en} ] 美[ ${ph_am} ]`)}`
   parts.forEach(item => {
@@ -96,8 +81,7 @@ async function handleWord(word) {
 }
 
 function handleSentence(sentence) {
-  const { tk, host } = global.words
-  tk && host && api.addS(sentence)
+  api.addS(sentence)
 }
 
 main()
