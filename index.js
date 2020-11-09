@@ -18,13 +18,17 @@ async function main() {
   const prog = new Command()
   prog.version(pkg.version)
   prog.option('-w --words <words...>', '单词或句子,句子最好用双引号包裹')
-  prog.option('-l --login <login...>', '登录，用户名,密码用空格隔开')
-  prog.option('-h --host <host...>', '写入接口地址')
+  prog.option('--login <login...>', '登录，用户名,密码用空格隔开')
+  prog.option('--host <host...>', '写入接口地址')
+  prog.option('-t --todo <todo...>', '待办事项')
+  prog.option('--time <time...>', '时间YY-MM-DD')
+  prog.option('--priority <priority>', '优先级,1优先级最高')
+  prog.option('--tags <tags...>', '标签')
   prog.option('-d --debug', '开启debug')
   prog.parse()
 
   const options = prog.opts()
-  let { words, login, host: hostOption } = options
+  let { words, login, host: hostOption, todo, time, priority, tags } = options
   words = words || prog.args
 
   if (hostOption) {
@@ -36,6 +40,12 @@ async function main() {
   if (login && login.length >= 2) {
     console.log(chalk.yellow('login...'))
     api.login(...login)
+    return
+  }
+
+  if (todo) {
+    time = time.join(' ')
+    api.addTodo({ todo, priority, time, tags })
     return
   }
 

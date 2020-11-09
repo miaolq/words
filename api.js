@@ -58,3 +58,19 @@ exports.addW = async w => {
     body: JSON.stringify(w),
   })
 }
+
+exports.addTodo = async ({ todo, priority, time, tags }) => {
+  const data = { content: todo.join(' ') }
+  priority && (data.priority = priority)
+  time && (data.emailTime = time)
+  tags && (data.tags = tags)
+
+  return fetch(`${host}/todo`, {
+    method: 'post',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${tk}`,
+    },
+    body: JSON.stringify(data),
+  })
+}

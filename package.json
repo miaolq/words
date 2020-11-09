@@ -1,6 +1,6 @@
 {
   "name": "translate-wd",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "translate word in command line",
   "main": "index.js",
   "scripts": {
